@@ -5,3 +5,4 @@ authors = ["Shylock-Hg <tcath2s@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+rand = ""

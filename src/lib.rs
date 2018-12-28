@@ -1,6 +1,9 @@
+
+
 /// The simple UnionFind-find algorithm
 
 use std::fmt;
+
 
 /// The union-find algorithm trait
 pub trait UnionFind {
@@ -155,6 +158,11 @@ impl<V: PartialEq + fmt::Debug> UnionWeighted<V> {
 
 #[cfg(test)]
 mod tests {
+
+        #![feature(test)]
+
+        use test::Bencher;
+
         #[test]
         fn basic() {
                 use super::UnionFind;  // must specify
@@ -204,6 +212,9 @@ mod tests {
                 for i in 0..COUNT-1 {
                         assert_eq!(false, u.find(i, i+1));
                 }
+                for i in 0..COUNT {
+                        assert_eq!(true, u.find(i, i));
+                }
 
                 // union all categories
                 for i in 0..COUNT-1 {  // union all categories
@@ -216,5 +227,30 @@ mod tests {
                         let (_, depth) = u.get_root_with_depth(i);
                         assert!(depth < 3);
                 }
+        }
+
+        // use rand;
+        extern crate rand;
+        use rand::Rng;
+
+
+        #[bench]
+        fn large_benchmarck(b: &mut Bencher) {
+                const COUNT: usize = 1024*1024*32;
+                use super::UnionFind;
+                let mut u: super::UnionWeighted<i32> = super::UnionWeighted::new_full_category(COUNT);
+
+                // union all categories
+                for i in 0..COUNT-1 {  // union all categories
+                        u.union(i, i+1);
+                }
+
+                let rng = rand::thread_rng();
+                let r1: usize = rng.gen_range(0 as usize, COUNT);
+                let r2: usize = rng.gen_range(0 as usize, COUNT);
+
+                b.iter(|| {
+                        u.find(r1, r2);
+                });
         }
 }
