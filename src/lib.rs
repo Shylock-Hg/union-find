@@ -1,9 +1,10 @@
-
+#![feature(test)]
 
 /// The simple UnionFind-find algorithm
 
-use std::fmt;
+extern crate test;
 
+use std::fmt;
 
 /// The union-find algorithm trait
 pub trait UnionFind {
@@ -25,8 +26,7 @@ pub trait UnionFind {
 ///     - parent: the parent index of current item, None for root node.
 ///     - children: the children index of current item, Empty for leaf.
 ///     - value: the value of the node.
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 struct UnionWeightedNode<V: PartialEq + fmt::Debug> {
         parent: Option<usize>,  // index of parent, None for root
         children: Vec<usize>,  // index of child, Empty for leaf
@@ -66,6 +66,10 @@ impl<V: PartialEq + fmt::Debug> UnionFind for UnionWeighted<V> {
         /// param k1: key of one item in union
         /// param k2: key of one item in union
         fn union(&mut self, k1: Self::K, k2: Self::K) {
+                if self.find(k1, k2) {
+                        return;  // in one union already
+                }
+
                 // not well when k1 or k2 is lowset root
                 let ((root1, depth1), (root2, depth2)) =
                         (self.get_root_with_depth(k1), self.get_root_with_depth(k2));
@@ -108,6 +112,7 @@ impl<V: PartialEq + fmt::Debug> UnionWeighted<V> {
 
         /// create a UnionWeighted
         /// param count: the capacity of union
+        /// retval: UnionWeighted
         pub fn new(count: usize) -> Self {
                 UnionWeighted {
                         nodes: Vec::with_capacity(count),
@@ -116,15 +121,16 @@ impl<V: PartialEq + fmt::Debug> UnionWeighted<V> {
 
         /// create a UnionWeighted with category
         /// param count: the capacity of union
+        /// retval: UnionWeighted full catgoried
         pub fn new_full_category(count: usize) -> Self {
                 UnionWeighted {
                         nodes: full!(count),
                 }
         }
 
-        /// get the root of one union
+        /// get the root of one union tree
         /// param index: the index of current id value in vector
-        /// retval: Option<index of root>
+        /// retval: the index of root of current union tree
         pub fn get_root(&self, index: usize) -> usize {
                 if let Some(p) = self.nodes[index].parent {
                         self.get_root(p)
@@ -133,24 +139,32 @@ impl<V: PartialEq + fmt::Debug> UnionWeighted<V> {
                 }
         }
 
+        // get the depth of union from root
+        // param root: the index of root of the union
+        // param depth: the depth in current recursive stage
+        // retval: the depth of current union tree
         fn get_depth_4_root(&self, root: &UnionWeightedNode<V>, depth: usize) -> usize {
-                // let mut depths: Vec<usize> = Vec::with_capacity(root.children.len());
-                let mut max: usize = 0;  // maximum fo depth of children
-                for child in &root.children {
+                const SAMPLES_COUNT: usize = 4;
+                let mut max: usize = 0;  // maximum depth of children
+                // Sampling instead of iterating each to optimize time cost
+                for child in root.children.iter().step_by(
+                        if root.children.len() > SAMPLES_COUNT { root.children.len()/SAMPLES_COUNT } else {1}
+                ) {
                         let children_depth = self.get_depth_4_root(&self.nodes[*child], depth+1);
                         if max < children_depth {
                                 max = children_depth;
                         }
                 }
-                max
+
+                max + depth
         }
 
         /// get the root and the depth of tree
         /// param index: the index of current id value in vector
-        /// retval: (Option<index of root>, depth)
+        /// retval: (root, depth) of current union
         pub fn get_root_with_depth(&self, index: usize) -> (usize, usize) {
                 let root = self.get_root(index);
-                let depth = self.get_depth_4_root(&self.nodes[index], 0);
+                let depth = self.get_depth_4_root(&self.nodes[root], 0);
                 (root, depth)
         }
 }
@@ -159,50 +173,65 @@ impl<V: PartialEq + fmt::Debug> UnionWeighted<V> {
 #[cfg(test)]
 mod tests {
 
-        #![feature(test)]
-
         use test::Bencher;
+
+        extern crate rand;
+        use rand::Rng;
+
 
         #[test]
         fn basic() {
+                const COUNT: usize = 4;
                 use super::UnionFind;  // must specify
                 let mut u: super::UnionWeighted<i32> = super::UnionWeighted::new_full_category(4);
-                assert_eq!(u.nodes.capacity(), 4);
-                assert_eq!(u.nodes, vec![super::UnionWeightedNode::default(),
-                                                super::UnionWeightedNode::default(),
-                                                super::UnionWeightedNode::default(),
-                                                super::UnionWeightedNode::default(),
-                                     ]);
+                assert_eq!(u.nodes.capacity(), COUNT);
+                assert_eq!(u.nodes, vec![super::UnionWeightedNode::default(); COUNT]);
 
-                assert_eq!(0, u.get_root(0));
-                assert_eq!(1, u.get_root(1));
-                assert_eq!(2, u.get_root(2));
-                assert_eq!(3, u.get_root(3));
-
-                assert_eq!((0, 0), u.get_root_with_depth(0));
-                assert_eq!((1, 0), u.get_root_with_depth(1));
-                assert_eq!((2, 0), u.get_root_with_depth(2));
-                assert_eq!((3, 0), u.get_root_with_depth(3));
-
-                assert_eq!(false, u.find(0, 1));
-                assert_eq!(false, u.find(1, 2));
-                assert_eq!(false, u.find(2, 3));
+                for i in 0..COUNT {
+                        assert_eq!(i, u.get_root(i));
+                }
+                for i in 0..COUNT {
+                        assert_eq!((i, 0), u.get_root_with_depth(i));
+                }
+                for i in 0..COUNT-1 {
+                        assert_eq!(false, u.find(i, i + 1));
+                }
 
                 u.union(2, 3);
                 assert!(u.find(2, 3));
-                // println!("{:?}", u);
+
                 u.union(1, 2);
                 assert!(u.find(1, 3));
-                // println!("{:?}", u);
                 assert_eq!(false, u.find(0, 3));
 
                 u.union(0, 3);
                 assert!(u.find(0, 2));
+
+
+                // u.union(0, 1);
+                u.union(1, 2);
+                u.union(2, 3);
+
+                println!("The simple union result is:\n {:?}", u);
+
+                // union all categories
+                for i in 0..COUNT-1 {  // union all categories
+                        u.union(i, i+1);
+                }
+                for i in 0..COUNT-1 {  // check
+                        assert_eq!(true, u.find(i, i+1));
+                }
+                for i in 0..COUNT {  // flat check
+                        let (_, depth) = u.get_root_with_depth(i);
+                        assert!(depth < 3);
+                }
         }
 
         #[test]
-        fn larget_test() {
+        fn large() {
                 const COUNT: usize = 1024*1024*32;
+                // const COUNT: usize = 1024*1024;
+                // const COUNT: usize = 1024;
                 use super::UnionFind;
                 let mut u: super::UnionWeighted<i32> = super::UnionWeighted::new_full_category(COUNT);
                 for i in 0..COUNT {
@@ -227,16 +256,25 @@ mod tests {
                         let (_, depth) = u.get_root_with_depth(i);
                         assert!(depth < 3);
                 }
+
+                // back union again
+                for i in COUNT-1..0 {
+                        u.union(i, i+1);
+                }
+                for i in 0..COUNT-1 {  // check
+                        assert_eq!(true, u.find(i, i+1));
+                }
+                for i in 0..COUNT {  // flat check
+                        let (_, depth) = u.get_root_with_depth(i);
+                        assert!(depth < 3);
+                }
         }
 
-        // use rand;
-        extern crate rand;
-        use rand::Rng;
-
-
         #[bench]
-        fn large_benchmarck(b: &mut Bencher) {
+        fn large_bench_find(b: &mut Bencher) {
                 const COUNT: usize = 1024*1024*32;
+                // const COUNT: usize = 1024*1024;
+                // const COUNT: usize = 1024;
                 use super::UnionFind;
                 let mut u: super::UnionWeighted<i32> = super::UnionWeighted::new_full_category(COUNT);
 
@@ -245,7 +283,7 @@ mod tests {
                         u.union(i, i+1);
                 }
 
-                let rng = rand::thread_rng();
+                let mut rng = rand::thread_rng();
                 let r1: usize = rng.gen_range(0 as usize, COUNT);
                 let r2: usize = rng.gen_range(0 as usize, COUNT);
 
@@ -253,4 +291,22 @@ mod tests {
                         u.find(r1, r2);
                 });
         }
+
+/*  // not very property
+        #[bench]
+        fn large_bench_union(b: &mut Bencher) {
+                const COUNT: usize = 1024*1024*32;
+                // const COUNT: usize = 1024*1024;
+                // const COUNT: usize = 1024;
+                use super::UnionFind;
+                let mut u: super::UnionWeighted<i32> = super::UnionWeighted::new_full_category(COUNT);
+
+                // union all categories
+                for i in 0..COUNT-1 {  // union all categories
+                        b.iter(|| {
+                                u.union(i, i+1);
+                        });
+                }
+        }
+*/
 }
