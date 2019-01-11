@@ -128,6 +128,35 @@ impl<V: PartialEq + fmt::Debug> UnionWeighted<V> {
                 }
         }
 
+        /// push new value to new union
+        /// param v: the value to push into
+        pub fn push(&mut self, v: V) {
+                self.nodes.push(UnionWeightedNode {
+                        parent: None,
+                        children: vec![],
+                        value: Some(v),
+                });
+        }
+
+        /// insert new value to exist union
+        /// param index: the union index which new value join to
+        /// param v: the new value
+        pub fn insert(&mut self, index: usize, v: V) {
+                if index >= self.nodes.len() {
+                        panic!("Insert to invalid union!");
+                }
+
+                let new = self.nodes.len();  // the index of the new item
+                let root = self.get_root(index);  // the root of union which join to
+
+                self.nodes.push(UnionWeightedNode {
+                        parent: Some(root),
+                        children: vec![],
+                        value: Some(v),
+                });
+                self.nodes[root].children.push(new);
+        }
+
         /// get the root of one union tree
         /// param index: the index of current id value in vector
         /// retval: the index of root of current union tree
@@ -225,6 +254,25 @@ mod tests {
                         let (_, depth) = u.get_root_with_depth(i);
                         assert!(depth < 3);
                 }
+
+                // testing push
+                u.push(3);
+                assert_eq!(4, u.get_root(4));
+                assert_eq!((4, 0), u.get_root_with_depth(4));
+                assert_eq!(false, u.find(3, 4));
+
+                u.union(1, 4);
+                assert_eq!(true, u.find(3, 4));
+
+                // testing insert
+                u.insert(2, 5);
+                assert_eq!(true, u.find(2, 5));
+                assert_eq!(true, u.find(0, 5));
+
+                u.insert(5, 6);
+                assert_eq!(true, u.find(1, 6));
+                assert_eq!(true, u.find(2, 6));
+                println!("The simple union result is:\n {:?}", u);
         }
 
         #[test]
