@@ -33,5 +33,5 @@ matrix:
           - binutils-arm-linux-gnueabihf
           - libc6-armhf-cross
           - libc6-dev-armhf-cross
-install: ci/install.sh
-script: ci/script.sh
+install: .ci/install.sh
+script: .ci/script.sh
