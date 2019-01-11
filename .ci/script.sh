@@ -15,11 +15,7 @@ set -ex
 
 main() {
     # Test a normal debug build.
-    if is_arm; then
-        cargo build --target "$TARGET" --verbose
-    else
-        cargo build --target "$TARGET" --verbose --all --features 'pcre2'
-    fi
+    cargo build --target "$TARGET" --verbose
 
     # Show the output of the most recent build.rs stderr.
     set +x
@@ -38,7 +34,7 @@ main() {
     fi
 
     # Run tests for ripgrep and all sub-crates.
-    cargo test --target "$TARGET" --verbose --all --features 'pcre2'
+    cargo test --target "$TARGET" --verbose
 }
 
 main
