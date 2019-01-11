@@ -35,6 +35,7 @@ main() {
 
     # Run tests for ripgrep and all sub-crates.
     cargo test --target "$TARGET" --verbose
+    cargo bench --target "$TARGET" --verbose
 }
 
 main
