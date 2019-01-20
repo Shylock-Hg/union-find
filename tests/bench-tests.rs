@@ -4,6 +4,7 @@
 mod bench_tests {
 
     extern crate test;
+    use test::Bencher;
     extern crate rand;
     use rand::Rng;
 
