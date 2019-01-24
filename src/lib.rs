@@ -183,11 +183,14 @@ impl<V: PartialEq + fmt::Debug> UnionWeighted<V> {
             root: &UnionWeightedNode<V>,
             depth: usize
     ) -> usize {
-        const SAMPLES_COUNT: usize = 4;
+        const SAMPLES_COUNT: usize = 4;  // force to 4 samples when too long
+        const STEP_MIN: usize = 4;
         let mut max: usize = 0;  // maximum depth of children
         // Sampling instead of iterating each to optimize time cost
+        // 1. step = 1, step_count = N, when N < SAMPLES_COUNT*STEP_MIN
+        // 2. step = N%SAMPLES_COUNT, step_count = SAMPLES_COUNT, other
         for child in root.children.iter().step_by(
-            if root.children.len() > SAMPLES_COUNT {
+            if root.children.len() > SAMPLES_COUNT*STEP_MIN {
                 root.children.len() / SAMPLES_COUNT
             } else {
                 1
