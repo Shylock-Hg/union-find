@@ -4,5 +4,13 @@ version = "0.1.0"
 authors = ["Shylock-Hg <tcath2s@gmail.com>"]
 edition = "2018"
 
+[[test]]
+name = "simple_tests"
+path = "tests/simple-tests.rs"
+
+[[bench]]
+name = "bench_tests"
+path = "tests/bench-tests.rs"
+
 [dependencies]
 rand = ""
