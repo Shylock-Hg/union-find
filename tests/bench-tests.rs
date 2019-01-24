@@ -1,5 +1,4 @@
 #![feature(test)]
-#![feature(uniform_paths)]
 
 #[cfg(test)] 
 mod bench_tests {
