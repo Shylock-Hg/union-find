@@ -1,5 +1,4 @@
 /// The simple union-find algorithm
-
 use std::fmt;
 
 /// The union-find algorithm trait
@@ -24,9 +23,9 @@ pub trait UnionFind {
 ///     - value: the value of the node.
 #[derive(Debug, PartialEq, Clone)]
 pub struct UnionWeightedNode<V: PartialEq + fmt::Debug> {
-    parent: Option<usize>,  // index of parent, None for root
+    parent: Option<usize>, // index of parent, None for root
     children: Vec<usize>,  // index of child, Empty for leaf
-    value: Option<V>,  // payload value of this Node
+    value: Option<V>,      // payload value of this Node
 }
 
 impl<V: PartialEq + fmt::Debug> Default for UnionWeightedNode<V> {
@@ -48,12 +47,9 @@ pub struct UnionWeighted<V: PartialEq + fmt::Debug> {
 
 impl<V: PartialEq + fmt::Debug> Default for UnionWeighted<V> {
     fn default() -> Self {
-        UnionWeighted {
-            nodes: vec![],
-        }
+        UnionWeighted { nodes: vec![] }
     }
 }
-
 
 impl<V: PartialEq + fmt::Debug> UnionFind for UnionWeighted<V> {
     type K = usize;
@@ -63,13 +59,14 @@ impl<V: PartialEq + fmt::Debug> UnionFind for UnionWeighted<V> {
     /// param k2: key of one item in union
     fn union(&mut self, k1: Self::K, k2: Self::K) {
         if self.find(k1, k2) {
-            return;  // in one union already
+            return; // in one union already
         }
 
         // not well when k1 or k2 is lowset root
         let ((root1, depth1), (root2, depth2)) =
             (self.get_root_with_depth(k1), self.get_root_with_depth(k2));
-        if depth1 < depth2 {  // link shorter tree follow to longer
+        if depth1 < depth2 {
+            // link shorter tree follow to longer
             self.nodes[root1].parent = Some(root2);
             self.nodes[root2].children.push(root1);
         } else {
@@ -93,19 +90,16 @@ impl<V: PartialEq + fmt::Debug> UnionFind for UnionWeighted<V> {
 }
 
 macro_rules! full {
-    ( $x: expr ) => {
-        {
-            let mut temp_v = Vec::with_capacity($x);
-            for _ in 0..$x {
-                temp_v.push(UnionWeightedNode::default());
-            }
-            temp_v
+    ( $x: expr ) => {{
+        let mut temp_v = Vec::with_capacity($x);
+        for _ in 0..$x {
+            temp_v.push(UnionWeightedNode::default());
         }
-    }
+        temp_v
+    }};
 }
 
 impl<V: PartialEq + fmt::Debug> UnionWeighted<V> {
-
     /// create a UnionWeighted
     /// param count: the capacity of union
     /// retval: UnionWeighted
@@ -142,8 +136,8 @@ impl<V: PartialEq + fmt::Debug> UnionWeighted<V> {
             panic!("Insert to invalid union!");
         }
 
-        let new = self.nodes.len();  // the index of the new item
-        let root = self.get_root(index);  // the root of union which join to
+        let new = self.nodes.len(); // the index of the new item
+        let root = self.get_root(index); // the root of union which join to
 
         self.nodes.push(UnionWeightedNode {
             parent: Some(root),
@@ -179,27 +173,26 @@ impl<V: PartialEq + fmt::Debug> UnionWeighted<V> {
     // param depth: the depth in current recursive stage
     // retval: the depth of current union tree
     fn get_depth_4_root(
-            &self,
-            root: &UnionWeightedNode<V>,
-            depth: usize
+        &self,
+        root: &UnionWeightedNode<V>,
+        depth: usize,
     ) -> usize {
-        const SAMPLES_COUNT: usize = 4;  // force to 4 samples when too long
+        const SAMPLES_COUNT: usize = 4; // force to 4 samples when too long
         const STEP_MIN: usize = 4;
-        let mut max: usize = 0;  // maximum depth of children
+        // maximum depth of children
+        let mut max: usize = 0;
         // Sampling instead of iterating each to optimize time cost
         // 1. step = 1, step_count = N, when N < SAMPLES_COUNT*STEP_MIN
         // 2. step = N%SAMPLES_COUNT, step_count = SAMPLES_COUNT, other
         for child in root.children.iter().step_by(
-            if root.children.len() > SAMPLES_COUNT*STEP_MIN {
+            if root.children.len() > SAMPLES_COUNT * STEP_MIN {
                 root.children.len() / SAMPLES_COUNT
             } else {
                 1
-            }
+            },
         ) {
-            let children_depth = self.get_depth_4_root(
-                    &self.nodes[*child],
-                    depth + 1
-            );
+            let children_depth =
+                self.get_depth_4_root(&self.nodes[*child], depth + 1);
             if max < children_depth {
                 max = children_depth;
             }
