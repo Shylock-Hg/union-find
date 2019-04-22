@@ -1,9 +1,8 @@
-
 #[cfg(test)]
 mod simple_tests {
 
     use union_find;
-    use union_find::UnionFind;  // must specify
+    use union_find::UnionFind; // must specify
 
     #[test]
     fn basic() {
@@ -15,13 +14,13 @@ mod simple_tests {
         assert_eq!(u.capacity(), COUNT);
         assert_eq!(u.len(), COUNT);
         for i in 0..COUNT {
-                assert_eq!(i, u.get_root(i));
+            assert_eq!(i, u.get_root(i));
         }
         for i in 0..COUNT {
-                assert_eq!((i, 0), u.get_root_with_depth(i));
+            assert_eq!((i, 0), u.get_root_with_depth(i));
         }
-        for i in 0..COUNT-1 {
-                assert_eq!(false, u.find(i, i + 1));
+        for i in 0..COUNT - 1 {
+            assert_eq!(false, u.find(i, i + 1));
         }
         // visualize the initialized union
         println!("The initialized union is:\n {:?}\n", u);
@@ -41,7 +40,6 @@ mod simple_tests {
         // visualize the result of union(2, 3, 1, 0)
         println!("The result of union(2, 3, 1, 0) is:\n {:?}\n", u);
 
-
         // check repeat union
         u.union(0, 1);
         u.union(1, 2);
@@ -53,15 +51,18 @@ mod simple_tests {
         println!("The result of repeat union is:\n {:?}\n", u);
 
         // union all categories
-        for i in 0..COUNT-1 {  // union all categories
-                u.union(i, i+1);
+        for i in 0..COUNT - 1 {
+            // union all categories
+            u.union(i, i + 1);
         }
-        for i in 0..COUNT-1 {  // check
-                assert_eq!(true, u.find(i, i+1));
+        for i in 0..COUNT - 1 {
+            // check
+            assert_eq!(true, u.find(i, i + 1));
         }
-        for i in 0..COUNT {  // flat check
-                let (_, depth) = u.get_root_with_depth(i);
-                assert!(depth < 3);
+        for i in 0..COUNT {
+            // flat check
+            let (_, depth) = u.get_root_with_depth(i);
+            assert!(depth < 3);
         }
         // visulize the the all unioned result
         println!("The result of all unioned is:\n {:?}\n", u);
@@ -90,7 +91,7 @@ mod simple_tests {
 
     #[test]
     fn large() {
-        const COUNT: usize = 1024*1024*32;
+        const COUNT: usize = 1024 * 1024 * 32;
         // const COUNT: usize = 1024*1024;
         // const COUNT: usize = 1024;
         use union_find::UnionFind;
@@ -100,38 +101,43 @@ mod simple_tests {
         assert_eq!(u.capacity(), COUNT);
         assert_eq!(u.len(), COUNT);
         for i in 0..COUNT {
-                assert_eq!(i, u.get_root(i));
-                assert_eq!((i, 0), u.get_root_with_depth(i));
+            assert_eq!(i, u.get_root(i));
+            assert_eq!((i, 0), u.get_root_with_depth(i));
         }
-        for i in 0..COUNT-1 {
-                assert_eq!(false, u.find(i, i+1));
+        for i in 0..COUNT - 1 {
+            assert_eq!(false, u.find(i, i + 1));
         }
         for i in 0..COUNT {
-                assert_eq!(true, u.find(i, i));
+            assert_eq!(true, u.find(i, i));
         }
 
         // union all categories
-        for i in 0..COUNT-1 {  // union all categories
-                u.union(i, i+1);
+        for i in 0..COUNT - 1 {
+            // union all categories
+            u.union(i, i + 1);
         }
-        for i in 0..COUNT-1 {  // check
-                assert_eq!(true, u.find(i, i+1));
+        for i in 0..COUNT - 1 {
+            // check
+            assert_eq!(true, u.find(i, i + 1));
         }
-        for i in 0..COUNT {  // flat check
-                let (_, depth) = u.get_root_with_depth(i);
-                assert!(depth < 3);
+        for i in 0..COUNT {
+            // flat check
+            let (_, depth) = u.get_root_with_depth(i);
+            assert!(depth < 3);
         }
 
         // back union again
-        for i in COUNT-1..0 {
-                u.union(i, i+1);
+        for i in COUNT - 1..0 {
+            u.union(i, i + 1);
         }
-        for i in 0..COUNT-1 {  // check
-                assert_eq!(true, u.find(i, i+1));
+        for i in 0..COUNT - 1 {
+            // check
+            assert_eq!(true, u.find(i, i + 1));
         }
-        for i in 0..COUNT {  // flat check
-                let (_, depth) = u.get_root_with_depth(i);
-                assert!(depth < 3);
+        for i in 0..COUNT {
+            // flat check
+            let (_, depth) = u.get_root_with_depth(i);
+            assert!(depth < 3);
         }
     }
 }
